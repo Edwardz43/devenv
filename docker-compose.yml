@@ -55,6 +55,19 @@ services:
             MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
             MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
 
+    cadvisor:
+        container_name: mycadvisor
+        image: gcr.io/google-containers/cadvisor:latest
+        restart: always
+        volumes:
+            - "/:/rootfs:ro"
+            - "/var/run:/var/run:ro"
+            - "/sys:/sys:ro"
+            - "/var/lib/docker/:/var/lib/docker:ro"
+            - "/dev/disk/:/dev/disk:ro"
+        ports: 
+            - 8088:8080
+
 networks: 
     backend:
         driver: bridge
