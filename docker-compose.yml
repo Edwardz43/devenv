@@ -47,8 +47,8 @@ services:
         image: mongo
         restart: always
         volumes:
-            - "/data/mongo:/data/db"
-            - "/data/mongo-entrypoint/:/docker-entrypoint-initdb.d/"
+            - "${MONGO_VOLUME}:/data/db"
+            - "${MONGO_ENTRYPOINT}:/docker-entrypoint-initdb.d/"
         ports:
             - ${MONGO_PORT}:27017
         environment:
