@@ -1,5 +1,5 @@
 version: '3'
-services:
+services:    
     postgres:
         container_name: mypostgres
         image: postgres
@@ -31,6 +31,20 @@ services:
         networks:
             - backend
 
+    mysql:
+        container_name: mysql57
+        image: mysql:5.7
+        restart: always
+        environment:
+            MYSQL_DATABASE: 'backstage'            
+            MYSQL_USER: 'admin'            
+            MYSQL_PASSWORD: '123456'            
+            MYSQL_ROOT_PASSWORD: 'root'
+        ports:            
+            - '3306:3306'
+        volumes:
+            - mysql:/var/lib/mysql
+
     redis:        
         container_name: myredis
         image: redis
@@ -54,19 +68,17 @@ services:
         environment:
             MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
             MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
-
-    cadvisor:
-        container_name: mycadvisor
-        image: gcr.io/google-containers/cadvisor:latest
+            
+    portainer:
+        container_name: myportainer
+        image: portainer
         restart: always
         volumes:
-            - "/:/rootfs:ro"
-            - "/var/run:/var/run:ro"
-            - "/sys:/sys:ro"
-            - "/var/lib/docker/:/var/lib/docker:ro"
-            - "/dev/disk/:/dev/disk:ro"
-        ports: 
-            - 8088:8080
+            - "${PORTAINER_VOLUME}:/data"
+            - "/var/run/docker.sock:/var/run/docker.sock"
+        ports:
+            - ${PORTAINER_PORT1}:8000
+            - ${PORTAINER_PORT2}:9000
 
 networks: 
     backend:
@@ -74,5 +86,9 @@ networks:
 
 volumes:
     postgres:
+        external: true
     pgadmin:
     mongo:
+    redis:
+    portainer:
+    mysql:
