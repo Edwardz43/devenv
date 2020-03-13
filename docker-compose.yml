@@ -68,7 +68,20 @@ services:
         environment:
             MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
             MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
-            
+
+    rabbitmq:
+        container_name: myrabbitmq
+        image: rabbitmq:3-management
+        restart: always
+        volumes:
+            - "${RABBITMQ_VOLUME}:/var/lib/rabbitmq/mnesia/"            
+        ports:
+            - ${RABBITMQ_PORT1}:5672
+            - ${RABBITMQ_PORT2}:15672
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}            
+
     portainer:
         container_name: myportainer
         image: portainer
@@ -92,3 +105,4 @@ volumes:
     redis:
     portainer:
     mysql:
+    rabbitmq:    
