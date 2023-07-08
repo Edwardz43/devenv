@@ -13,32 +13,24 @@ services:
         volumes:
             - '${POSTGRES_VOLUME}:/var/lib/postgresql/data'
     
-    # mysql:
-    #     container_name: mysql57
-    #     image: mysql:5.7
-    #     restart: always
-    #     environment:
-    #         MYSQL_DATABASE: 'backstage'            
-    #         MYSQL_USER: 'admin'            
-    #         MYSQL_PASSWORD: '123456'            
-    #         MYSQL_ROOT_PASSWORD: 'root'
-    #     ports:
-    #         - '${MYSQL_PORT}:3306'
-    #     volumes:
-    #         - ./data/mysql:/var/lib/mysql
-
-    mariadb:
-        container_name: mariadb
-        image: mariadb:10.6.5
+    mysql:
+        container_name: mysql57
+        # container_name: mysql8
+        platform: linux/x86_64
+        image: mysql:5.7
+        # image: mysql:latest
         restart: always
+        command: mysqld --sql_mode="NO_ENGINE_SUBSTITUTION,ALLOW_INVALID_DATES"
         environment:
-            MARIADB_USER: 'admin'            
-            MARIADB_PASSWORD: '123456'            
-            MARIADB_ROOT_PASSWORD: 'root'
+            MYSQL_DATABASE: 'demo'            
+            MYSQL_USER: 'admin'            
+            MYSQL_PASSWORD: '123456'            
+            MYSQL_ROOT_PASSWORD: 'root'
         ports:
-            - "${MARIADB_PORT}:3306"
+            - '${MYSQL_PORT}:3306'
         volumes:
-            - ./data/mariadb:/var/lib/mysql
+            - ./data/mysql:/var/lib/mysql
+            - ./mysql8/custom:/etc/mysql/conf.d
 
     redis:        
         container_name: myredis
@@ -51,12 +43,26 @@ services:
     
     mongo:
         container_name: mongodb
-        image: mongo
+        image: arm64v8/mongo
         restart: always
         ports:
             - '${MONGO_PORT}:27017'
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: root
         volumes:
             - "${MONGO_VOLUME}:/data/db"
+
+    mongo-express:
+        image: mongo-express
+        platform: linux/x86_64
+        restart: always
+        ports:
+        - 8081:8081
+        environment:
+            ME_CONFIG_MONGODB_ADMINUSERNAME: root
+            ME_CONFIG_MONGODB_ADMINPASSWORD: root
+            ME_CONFIG_MONGODB_URL: mongodb://root:root@mongo:27017/
 
     rabbitmq:
         container_name: myrabbitmq
@@ -69,7 +75,38 @@ services:
             - '${RABBITMQ_PORT}:5672'
             - '${RABBITMQ_MANAGEMENT_PORT}:15672'
         volumes:
-            - "${RABBITMQ_VOLUME}:/var/lib/rabbitmq/mnesia/"            
+            - "${RABBITMQ_VOLUME}:/var/lib/rabbitmq/mnesia/"
+
+    influxdb:
+        image: influxdb:1.8
+        container_name: influxdb
+        ports:
+            - '${INFLUXDB_PORT}:8086'
+        environment:
+            INFLUXDB_DB: ${INFLUXDB_DB}
+            INFLUXDB_ADMIN_USER: ${INFLUXDB_ADMIN_USER}
+            INFLUXDB_ADMIN_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
+            INFLUXDB_USER: ${INFLUXDB_USER}
+            INFLUXDB_PASSWORD: ${INFLUXDB_PASSWORD}
+        volumes:
+        - '${INFLUXDB_VOLUME}:/var/lib/influxdb'
+
+    grafana:
+        image: grafana/grafana-oss:latest
+        container_name: grafana
+        ports:
+            - '${GF_PORT}:3000'
+        depends_on:
+            - influxdb
+        environment:
+            GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PASSWORD}
+            GF_AUTH_BASIC_USERS: admin:admin
+            GF_AUTH_BASIC_ORG_ROLE: Admin
+            GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource"
+            GF_INSTALL_IMAGE_RENDERER_PLUGIN: true
+        volumes:
+            - '${GF_VOLUME}:/var/lib/grafana'
+        
 
 volumes:
     postgres:
