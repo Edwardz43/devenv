@@ -106,6 +106,19 @@ services:
             GF_INSTALL_IMAGE_RENDERER_PLUGIN: true
         volumes:
             - '${GF_VOLUME}:/var/lib/grafana'
+
+    localstack:
+        container_name: localstack
+        image: localstack/localstack
+        ports:
+        - "${LOCALSTACK_PORT}:4566"            # LocalStack Gateway
+        - "4510-4559:4510-4559"  # external services port range
+        environment:
+        #- DEBUG=${DEBUG-}
+        - DOCKER_HOST=unix:///var/run/docker.sock
+        volumes:
+        - "${LOCALSTACK_VOLUME}:/var/lib/localstack"
+        - "/var/run/docker.sock:/var/run/docker.sock"
         
 
 volumes:
